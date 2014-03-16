@@ -1,0 +1,32 @@
+A naive implementation of Chord distributed hash table
+Santa Zhang (santa1987@gmail.com)
+
+How to build
+============
+
+naive-chord depends on 2 other projects:
+
+  * https://github.com/santazhang/base-utils
+  * https://github.com/santazhang/simple-rpc
+
+Checkout those 2 projects, make sure you have following directory layout:
+
+    $WORKSPACE/base-utils
+    $WORKSPACE/simple-rpc
+    $WORKSPACE/naive-chord
+
+Build and test base-utils and simple-rpc first:
+
+    cd $WORKSPACE/base-utils
+    ./waf configure
+    ./waf
+    ./build/unittest
+    cd $WORKSPACE/simple-rpc
+    ./waf configure
+    ./waf
+    ./build/unittest
+
+Now you are ready to use naive-chord:
+
+    . activate.sh
+    ./chord_server.py
