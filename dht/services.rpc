@@ -1,3 +1,7 @@
-service Chord {
+service _Chord {
     ping( | )
+    leave( | )
+
+    get(string key | i32 err, string value)
+    put(string key, string value | i32 err)
 }

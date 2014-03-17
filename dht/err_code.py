@@ -1,0 +1,2 @@
+ERR_OK = 0
+ERR_NOENT = 1
