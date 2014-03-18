@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 import sys
-from simplerpc import Client
-from dht import ChordProxy
+from dht import ChordClient
 
 if len(sys.argv) < 2:
     print "usage: %s server_addr" % sys.argv[0]
@@ -10,11 +9,9 @@ if len(sys.argv) < 2:
 
 server_addr = sys.argv[1]
 
-clnt = Client()
-clnt.connect(server_addr)
-proxy = ChordProxy(clnt)
-
-
-proxy.sync_ping()
-proxy.sync_put("key", "value")
-print proxy.sync_get("key")
+chord = ChordClient(server_addr)
+chord.put("key", "value")
+print chord.get("key")
+chord.put("key", "new value")
+print chord.get("key")
+chord.remove("key")

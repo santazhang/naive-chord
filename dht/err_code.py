@@ -1,2 +1,3 @@
 ERR_OK = 0
 ERR_NOENT = 1
+ERR_RETRY = 2

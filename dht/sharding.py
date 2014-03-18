@@ -1,8 +1,6 @@
-INIT_SHARDS = 100
-
-SHARD_READY = 0
-SHARD_MIG_OUT = 1
-SHARD_MIG_IN = 2
+SHARD_READY = 0 # stable, ready for put/get/remove
+SHARD_MIG_OUT = 1 # the shard is being migrated out. first write to old shard, then write to new shard
+SHARD_MIG_IN = 2 # the shard is being migrated in, if key not found, retry later
 
 class Shard(object):
 
@@ -19,3 +17,6 @@ class Shard(object):
 
     def get(self, key):
         return self.data[key]
+
+    def remove(self, key):
+        del self.data[key]

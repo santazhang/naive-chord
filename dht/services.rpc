@@ -1,7 +1,13 @@
+struct _keyrange {
+    string low
+    string high
+}
+
 service _Chord {
-    ping( | )
+    fetch_lookup_table( | map<_keyrange, string>)
     leave( | )
 
     get(string key | i32 err, string value)
     put(string key, string value | i32 err)
+    remove(string key | i32 err)
 }
