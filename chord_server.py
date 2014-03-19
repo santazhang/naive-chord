@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import os
 import time
 from simplerpc import Server
 from dht import ChordService
@@ -19,5 +20,8 @@ s = Server()
 s.reg_svc(svc)
 s.start(server_addr)
 
-while True:
-    time.sleep(1)
+try:
+    while True:
+        time.sleep(1)
+finally:
+    os._exit(0)

@@ -25,16 +25,27 @@ class ChordClient(object):
         self.proxy = {}
         proxy = dht.services._ChordProxy(clnt)
         lkuptbl = proxy.sync_fetch_lookup_table()
-        print lkuptbl
         for _rng in lkuptbl:
             rng = keyrange(low=_rng.low, high=_rng.high)
             server_addr = lkuptbl[_rng]
             self.lookup_table[rng] = server_addr
             self.proxy[rng] = dht.services._ChordProxy(self._get_rpcclnt(server_addr))
 
+    def refresh_lookup_table(self):
+        self._update_lookup_table(self.rpcclnt.values()[0])
+
+    def debug_print(self):
+        print "*** lookup table"
+        print self.lookup_table
+        for remote_addr in self.lookup_table.values():
+            clnt = self._get_rpcclnt(remote_addr)
+            proxy = dht.services._ChordProxy(clnt)
+            proxy.sync_debug_print()
+
     def _find_server_proxy_by_hash(self, h):
         for rng in self.proxy:
             if h in rng:
+                print "hash %s -> %s -> %s" % (h, rng, self.lookup_table[rng])
                 return self.proxy[rng]
 
     def put(self, key, value):
@@ -45,6 +56,7 @@ class ChordClient(object):
 
     def get(self, key):
         h = dhash(key)
+        print "get key %s -> %s" % (key, h)
         proxy = self._find_server_proxy_by_hash(h)
         while True:
             err, value = proxy.sync_get(key)

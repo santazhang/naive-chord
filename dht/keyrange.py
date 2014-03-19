@@ -44,3 +44,6 @@ class keyrange(object):
                 sp += rng,
             sp += keyrange(int_to_dhash(pos), self.high),
             return sp
+
+    def include(self, other):
+        return self.low <= other.low and other.high <= self.high

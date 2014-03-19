@@ -15,3 +15,12 @@ print chord.get("key")
 chord.put("key", "new value")
 print chord.get("key")
 chord.remove("key")
+
+chord.refresh_lookup_table()
+chord.debug_print()
+
+for i in range(100):
+    print chord.get(str(i))
+
+chord.put("key2", "new value 2")
+print chord.get("key2")
