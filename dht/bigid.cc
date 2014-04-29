@@ -19,7 +19,27 @@ BigId::BigId(const char* p, int n) {
 }
 
 int BigId::cmp(const BigId& o) const {
-    return memcmp(sha1_, o.sha1_, BigId::M);
+    int full_bytes = BigId::M / 8;
+    int r = memcmp(sha1_, o.sha1_, full_bytes);
+    if (r != 0) {
+        return r;
+    }
+
+    int residual = BigId::M % 8;
+    if (residual == 0) {
+        return r;
+    }
+
+    int mask = (1 << residual) - 1;
+    int a = sha1_[full_bytes] & mask;
+    int b = o.sha1_[full_bytes] & mask;
+    if (a < b) {
+        return -1;
+    } else if (a > b) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 } // namespace dht
