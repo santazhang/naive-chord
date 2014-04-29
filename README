@@ -26,7 +26,8 @@ Build and test base-utils and simple-rpc first:
     ./waf
     ./build/unittest
 
-Now you are ready to use naive-chord:
+Now you are ready to build naive-chord:
 
-    . activate.sh
-    ./chord_server.py 127.0.0.1:1987
+    ./waf configure
+    ./waf
+    ./build/unittest
