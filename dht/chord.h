@@ -7,11 +7,13 @@
 #include "config.h"
 #include "marshal-chord.h"
 #include "services.h"
+#include "storage.h"
 
 namespace dht {
 
-class Chord: public NoCopy {
+class Chord: public NoCopy, public ChordService {
 
+    Storage store_;
     host_port me_;
     host_port pred_;
     std::vector<host_port> succ_;

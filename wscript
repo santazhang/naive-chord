@@ -23,14 +23,15 @@ def build(bld):
     _depend("dht/services.h", "dht/services.rpc", "../simple-rpc/bin/rpcgen dht/services.rpc")
 
     bld.stlib(
-        source=bld.path.ant_glob(["dht/*.cc", "dht/*.cpp"], excl="dht/main.cc"),
+        source=bld.path.ant_glob(["dht/*.cc", "dht/*.cpp"], excl="dht/server_main.cc dht/client_console.cc"),
         target="dht",
         use=bld.env.USES)
 
     def _prog(source, target):
         bld.program(source=source, target=target, includes=". dht", use="dht %s" % bld.env.USES)
 
-    _prog("dht/main.cc", "chord")
+    _prog("dht/server_main.cc", "chord")
+    _prog("dht/client_console.cc", "console")
     _prog(bld.path.ant_glob("test/test*.cc"), "unittest")
 
 
