@@ -11,4 +11,7 @@ using base::RefCounted;
 using base::Log;
 using base::insert_into_map;
 
+// host:port address
+typedef std::string host_port;
+
 } // namespace dht

@@ -1,1 +1,23 @@
 namespace dht
+
+abstract service Chord {
+    // key operations
+    fast put(string key, string value);
+    fast get(string key | string value, i8 ok);
+    fast remove(string key | i8 ok);
+
+
+    // the following are chord internal operations
+
+    // given an id, find the successor (host:port address)
+    defer find_successor(dht::BigId id | dht::host_port addr);
+
+    // get the predecessor of this node
+    fast get_predecessor( | dht::host_port addr);
+
+    // 'maybe_pred' thinks it might be this node's predecessor
+    fast notify(dht::host_port maybe_pred);
+
+    // heartbeat message
+    fast ping()
+};

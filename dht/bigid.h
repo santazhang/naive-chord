@@ -8,12 +8,20 @@ namespace dht {
 
 class BigId {
 
-    unsigned char sha1_[20];
+    unsigned char sha1_[g_sha1_bytes];
 
 public:
     BigId();
     BigId(const std::string& s);
     BigId(const char* p, int n);
+
+    unsigned char* raw_bytes() {
+        return sha1_;
+    }
+
+    const unsigned char* raw_bytes() const {
+        return sha1_;
+    }
 
     int cmp(const BigId& o) const;
 
