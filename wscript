@@ -31,7 +31,7 @@ def build(bld):
         bld.program(source=source, target=target, includes=". dht", use="dht %s" % bld.env.USES)
 
     _prog("dht/main.cc", "chord")
-    _prog(bld.path.ant_glob("test/test*.cc"), "unittests")
+    _prog(bld.path.ant_glob("test/test*.cc"), "unittest")
 
 
 #
