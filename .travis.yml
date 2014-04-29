@@ -1,0 +1,20 @@
+script:
+    - mkdir -p travis_checkout
+    - cd travis_checkout
+    - git clone https://github.com/santazhang/base-utils.git
+    - git clone https://github.com/santazhang/simple-rpc.git
+    - git clone https://github.com/santazhang/naive-chord.git
+    - cd base-utils
+    - ./waf configure
+    - ./waf
+    - cd ../simple-rpc
+    - ./waf configure
+    - ./waf
+    - cd ../naive-chord
+    - ./waf configure
+    - ./waf
+    - ./build/unittest
+
+after_success:
+    - sudo apt-get -qq install valgrind
+    - valgrind --leak-check=full --show-reachable=yes ./build/unittest
