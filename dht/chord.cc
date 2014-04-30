@@ -65,7 +65,9 @@ void Chord::get_predecessor(dht::host_port* addr) {
 }
 
 void Chord::notify(const dht::host_port& maybe_pred) {
-    // TODO
+    if (pred_ == "" || (BigRange(BigId(pred_), BigId(me_)).include(BigId(maybe_pred)) && maybe_pred != me_)) {
+        pred_ = maybe_pred;
+    }
 }
 
 void Chord::ping(const dht::host_port& sender) {
