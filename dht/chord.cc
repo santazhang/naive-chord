@@ -10,24 +10,30 @@ Chord::Chord(const host_port& me): me_(me) {
 }
 
 
-void Chord::put(const std::string& key, const std::string& value) {
+void Chord::put(const std::string& key, const std::string& value, rpc::DeferredReply* defer) {
+    // TODO forward request to correct server
     store_.put(key, value);
+    defer->reply();
 }
 
-void Chord::get(const std::string& key, std::string* value, rpc::i8* ok) {
+void Chord::get(const std::string& key, std::string* value, rpc::i8* ok, rpc::DeferredReply* defer) {
+    // TODO forward request to correct server
     if (store_.get(key, value)) {
         *ok = 0;
     } else {
         *ok = ENOENT;
     }
+    defer->reply();
 }
 
-void Chord::remove(const std::string& key, rpc::i8* ok) {
+void Chord::remove(const std::string& key, rpc::i8* ok, rpc::DeferredReply* defer) {
+    // TODO forward request to correct server
     if (store_.remove(key)) {
         *ok = 0;
     } else {
         *ok = ENOENT;
     }
+    defer->reply();
 }
 
 void Chord::find_successor(const dht::BigId& id, dht::host_port* addr, rpc::DeferredReply* defer) {

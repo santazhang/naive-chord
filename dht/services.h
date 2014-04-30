@@ -11,13 +11,13 @@ namespace dht {
 class ChordService: public rpc::Service {
 public:
     enum {
-        PUT = 0x24079ccc,
-        GET = 0x5b25b1b1,
-        REMOVE = 0x4444a894,
-        FIND_SUCCESSOR = 0x48746f68,
-        GET_PREDECESSOR = 0x5c74ea10,
-        NOTIFY = 0x27bdee5e,
-        PING = 0x119088c6,
+        PUT = 0x1b4436d3,
+        GET = 0x2fdc2dd7,
+        REMOVE = 0x652d2bbb,
+        FIND_SUCCESSOR = 0x37c92d2a,
+        GET_PREDECESSOR = 0x6eaf782b,
+        NOTIFY = 0x56c96b9d,
+        PING = 0x2d2aab1d,
     };
     int __reg_to__(rpc::Server* svr) {
         int ret = 0;
@@ -55,48 +55,58 @@ public:
     }
     // these RPC handler functions need to be implemented by user
     // for 'raw' handlers, remember to reply req, delete req, and sconn->release(); use sconn->run_async for heavy job
-    virtual void put(const std::string& key, const std::string& value) = 0;
-    virtual void get(const std::string& key, std::string* value, rpc::i8* ok) = 0;
-    virtual void remove(const std::string& key, rpc::i8* ok) = 0;
+    virtual void put(const std::string& key, const std::string& value, rpc::DeferredReply* defer) = 0;
+    virtual void get(const std::string& key, std::string* value, rpc::i8* ok, rpc::DeferredReply* defer) = 0;
+    virtual void remove(const std::string& key, rpc::i8* ok, rpc::DeferredReply* defer) = 0;
     virtual void find_successor(const dht::BigId& id, dht::host_port* addr, rpc::DeferredReply* defer) = 0;
     virtual void get_predecessor(dht::host_port* addr) = 0;
     virtual void notify(const dht::host_port& maybe_pred) = 0;
     virtual void ping(const dht::host_port& sender) = 0;
 private:
     void __put__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
-        std::string in_0;
-        req->m >> in_0;
-        std::string in_1;
-        req->m >> in_1;
-        this->put(in_0, in_1);
-        sconn->begin_reply(req);
-        sconn->end_reply();
-        delete req;
-        sconn->release();
+        std::string* in_0 = new std::string;
+        req->m >> *in_0;
+        std::string* in_1 = new std::string;
+        req->m >> *in_1;
+        auto __marshal_reply__ = [=] {
+        };
+        auto __cleanup__ = [=] {
+            delete in_0;
+            delete in_1;
+        };
+        rpc::DeferredReply* __defer__ = new rpc::DeferredReply(req, sconn, __marshal_reply__, __cleanup__);
+        this->put(*in_0, *in_1, __defer__);
     }
     void __get__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
-        std::string in_0;
-        req->m >> in_0;
-        std::string out_0;
-        rpc::i8 out_1;
-        this->get(in_0, &out_0, &out_1);
-        sconn->begin_reply(req);
-        *sconn << out_0;
-        *sconn << out_1;
-        sconn->end_reply();
-        delete req;
-        sconn->release();
+        std::string* in_0 = new std::string;
+        req->m >> *in_0;
+        std::string* out_0 = new std::string;
+        rpc::i8* out_1 = new rpc::i8;
+        auto __marshal_reply__ = [=] {
+            *sconn << *out_0;
+            *sconn << *out_1;
+        };
+        auto __cleanup__ = [=] {
+            delete in_0;
+            delete out_0;
+            delete out_1;
+        };
+        rpc::DeferredReply* __defer__ = new rpc::DeferredReply(req, sconn, __marshal_reply__, __cleanup__);
+        this->get(*in_0, out_0, out_1, __defer__);
     }
     void __remove__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
-        std::string in_0;
-        req->m >> in_0;
-        rpc::i8 out_0;
-        this->remove(in_0, &out_0);
-        sconn->begin_reply(req);
-        *sconn << out_0;
-        sconn->end_reply();
-        delete req;
-        sconn->release();
+        std::string* in_0 = new std::string;
+        req->m >> *in_0;
+        rpc::i8* out_0 = new rpc::i8;
+        auto __marshal_reply__ = [=] {
+            *sconn << *out_0;
+        };
+        auto __cleanup__ = [=] {
+            delete in_0;
+            delete out_0;
+        };
+        rpc::DeferredReply* __defer__ = new rpc::DeferredReply(req, sconn, __marshal_reply__, __cleanup__);
+        this->remove(*in_0, out_0, __defer__);
     }
     void __find_successor__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
         dht::BigId* in_0 = new dht::BigId;

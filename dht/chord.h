@@ -22,9 +22,9 @@ class Chord: public NoCopy, public ChordService {
 
 public:
 
-    virtual void put(const std::string& key, const std::string& value);
-    virtual void get(const std::string& key, std::string* value, rpc::i8* ok);
-    virtual void remove(const std::string& key, rpc::i8* ok);
+    virtual void put(const std::string& key, const std::string& value, rpc::DeferredReply* defer);
+    virtual void get(const std::string& key, std::string* value, rpc::i8* ok, rpc::DeferredReply* defer);
+    virtual void remove(const std::string& key, rpc::i8* ok, rpc::DeferredReply* defer);
     virtual void find_successor(const dht::BigId& id, dht::host_port* addr, rpc::DeferredReply* defer);
     virtual void get_predecessor(dht::host_port* addr);
     virtual void notify(const dht::host_port& maybe_pred);

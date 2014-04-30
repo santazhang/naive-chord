@@ -2,9 +2,9 @@ namespace dht
 
 abstract service Chord {
     // key operations
-    fast put(string key, string value);
-    fast get(string key | string value, i8 ok);
-    fast remove(string key | i8 ok);
+    defer put(string key, string value);
+    defer get(string key | string value, i8 ok);
+    defer remove(string key | i8 ok);
 
 
     // the following are chord internal operations
