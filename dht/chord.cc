@@ -8,6 +8,12 @@ Chord::Chord(const host_port& me): me_(me), succ_(me) {
     clnt_ = new rpc::ClientPool;
 }
 
+Chord::Chord(const host_port& me, const host_port& join_at): me_(me) {
+    clnt_ = new rpc::ClientPool;
+    ChordProxy proxy(clnt_->get_client(join_at));
+    proxy.find_successor(BigId(me), &succ_);
+}
+
 Chord::~Chord() {
     delete clnt_;
 }
@@ -30,6 +36,7 @@ void Chord::remove(const std::string& key, rpc::i8* ok, rpc::DeferredReply* defe
 
 void Chord::find_successor(const dht::BigId& id, dht::host_port* addr, rpc::DeferredReply* defer) {
     // TODO
+    defer->reply();
 }
 
 void Chord::get_predecessor(dht::host_port* addr) {
@@ -72,8 +79,7 @@ Chord* Chord::create(const host_port& me) {
 
 
 Chord* Chord::join(const host_port& me, const host_port& join_at) {
-    Chord* chord = new Chord(me);
-    // TODO
+    Chord* chord = new Chord(me, join_at);
     return chord;
 }
 

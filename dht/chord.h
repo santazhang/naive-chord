@@ -20,6 +20,7 @@ class Chord: public NoCopy, public ChordService {
     rpc::ClientPool* clnt_;
 
     Chord(const host_port& me);
+    Chord(const host_port& me, const host_port& join_at);
 
 public:
 

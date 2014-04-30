@@ -48,6 +48,7 @@ int main(int argc, char* argv[]) {
         string join_addr = argv[2];
         chord_svc = Chord::join(my_addr, join_addr);
     }
+    server->reg(chord_svc);
 
     int ret_code = 0;
     if (server->start(bind_addr.c_str()) != 0) {
