@@ -42,4 +42,20 @@ int BigId::cmp(const BigId& o) const {
     }
 }
 
+bool BigRange::include(const BigId& id) const {
+    if (low_ == high_) {
+        // take care of special case (low, high] where low == high,
+        // whole chord ring is included in this case
+        return true;
+    }
+
+    if (low_ <= high_) {
+        // no wrap around
+        return low_ < id && id <= high_;
+    } else {
+        // have wrap around
+        return low_ < id || id <= high_;
+    }
+}
+
 } // namespace dht

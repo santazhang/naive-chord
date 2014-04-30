@@ -48,4 +48,15 @@ inline bool operator >= (const BigId& bi1, const BigId& bi2) {
     return bi1.cmp(bi2) != -1;
 }
 
+
+class BigRange {
+    BigId low_;
+    BigId high_;
+
+public:
+    BigRange(const BigId& low, const BigId& high_inclusive): low_(low), high_(high_inclusive) {}
+
+    bool include(const BigId& id) const;
+};
+
 } // namespace dht

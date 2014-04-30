@@ -2,6 +2,8 @@
 
 #include "chord.h"
 
+using namespace rpc;
+
 namespace dht {
 
 Chord::Chord(const host_port& me): me_(me), succ_(me) {
@@ -35,8 +37,20 @@ void Chord::remove(const std::string& key, rpc::i8* ok, rpc::DeferredReply* defe
 }
 
 void Chord::find_successor(const dht::BigId& id, dht::host_port* addr, rpc::DeferredReply* defer) {
-    // TODO
-    defer->reply();
+    // TODO scalable approach
+    if (BigRange(BigId(me_), BigId(succ_)).include(id)) {
+        *addr = succ_;
+        defer->reply();
+    } else {
+        ChordProxy proxy(clnt_->get_client(succ_));
+        FutureAttr fu_attr;
+        fu_attr.callback = [defer, addr] (Future* fu) {
+            fu->get_reply() >> *addr;
+            defer->reply();
+        };
+        Future* fu = proxy.async_find_successor(id, fu_attr);
+        Future::safe_release(fu);
+    }
 }
 
 void Chord::get_predecessor(dht::host_port* addr) {
