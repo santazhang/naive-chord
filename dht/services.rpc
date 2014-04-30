@@ -1,7 +1,7 @@
 namespace dht
 
 abstract service Chord {
-    // key operations
+    // public key operations
     defer put(string key, string value);
     defer get(string key | string value, i8 ok);
     defer remove(string key | i8 ok);
@@ -19,5 +19,10 @@ abstract service Chord {
     fast notify(dht::host_port maybe_pred);
 
     // heartbeat message
-    fast ping(dht::host_port sender)
+    fast ping(dht::host_port sender);
+
+    // key operations on this node
+    fast put_key(string key, string value);
+    fast get_key(string key | string value, i8 ok);
+    fast remove_key(string key | i8 ok);
 };

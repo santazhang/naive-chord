@@ -12,27 +12,16 @@ Chord::Chord(const host_port& me): me_(me) {
 
 void Chord::put(const std::string& key, const std::string& value, rpc::DeferredReply* defer) {
     // TODO forward request to correct server
-    store_.put(key, value);
     defer->reply();
 }
 
 void Chord::get(const std::string& key, std::string* value, rpc::i8* ok, rpc::DeferredReply* defer) {
     // TODO forward request to correct server
-    if (store_.get(key, value)) {
-        *ok = 0;
-    } else {
-        *ok = ENOENT;
-    }
     defer->reply();
 }
 
 void Chord::remove(const std::string& key, rpc::i8* ok, rpc::DeferredReply* defer) {
     // TODO forward request to correct server
-    if (store_.remove(key)) {
-        *ok = 0;
-    } else {
-        *ok = ENOENT;
-    }
     defer->reply();
 }
 
@@ -50,6 +39,26 @@ void Chord::notify(const dht::host_port& maybe_pred) {
 
 void Chord::ping(const dht::host_port& sender) {
     // TODO
+}
+
+void Chord::put_key(const std::string& key, const std::string& value) {
+    store_.put(key, value);
+}
+
+void Chord::get_key(const std::string& key, std::string* value, rpc::i8* ok) {
+    if (store_.get(key, value)) {
+        *ok = 0;
+    } else {
+        *ok = ENOENT;
+    }
+}
+
+void Chord::remove_key(const std::string& key, rpc::i8* ok) {
+    if (store_.remove(key)) {
+        *ok = 0;
+    } else {
+        *ok = ENOENT;
+    }
 }
 
 

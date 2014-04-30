@@ -11,13 +11,16 @@ namespace dht {
 class ChordService: public rpc::Service {
 public:
     enum {
-        PUT = 0x1b4436d3,
-        GET = 0x2fdc2dd7,
-        REMOVE = 0x652d2bbb,
-        FIND_SUCCESSOR = 0x37c92d2a,
-        GET_PREDECESSOR = 0x6eaf782b,
-        NOTIFY = 0x56c96b9d,
-        PING = 0x2d2aab1d,
+        PUT = 0x2fc631be,
+        GET = 0x1dec98f6,
+        REMOVE = 0x4f149aad,
+        FIND_SUCCESSOR = 0x3cee39a5,
+        GET_PREDECESSOR = 0x46739930,
+        NOTIFY = 0x26e018e5,
+        PING = 0x15605249,
+        PUT_KEY = 0x443dfeec,
+        GET_KEY = 0x4c55e9c7,
+        REMOVE_KEY = 0x40234215,
     };
     int __reg_to__(rpc::Server* svr) {
         int ret = 0;
@@ -42,6 +45,15 @@ public:
         if ((ret = svr->reg(PING, this, &ChordService::__ping__wrapper__)) != 0) {
             goto err;
         }
+        if ((ret = svr->reg(PUT_KEY, this, &ChordService::__put_key__wrapper__)) != 0) {
+            goto err;
+        }
+        if ((ret = svr->reg(GET_KEY, this, &ChordService::__get_key__wrapper__)) != 0) {
+            goto err;
+        }
+        if ((ret = svr->reg(REMOVE_KEY, this, &ChordService::__remove_key__wrapper__)) != 0) {
+            goto err;
+        }
         return 0;
     err:
         svr->unreg(PUT);
@@ -51,6 +63,9 @@ public:
         svr->unreg(GET_PREDECESSOR);
         svr->unreg(NOTIFY);
         svr->unreg(PING);
+        svr->unreg(PUT_KEY);
+        svr->unreg(GET_KEY);
+        svr->unreg(REMOVE_KEY);
         return ret;
     }
     // these RPC handler functions need to be implemented by user
@@ -62,6 +77,9 @@ public:
     virtual void get_predecessor(dht::host_port* addr) = 0;
     virtual void notify(const dht::host_port& maybe_pred) = 0;
     virtual void ping(const dht::host_port& sender) = 0;
+    virtual void put_key(const std::string& key, const std::string& value) = 0;
+    virtual void get_key(const std::string& key, std::string* value, rpc::i8* ok) = 0;
+    virtual void remove_key(const std::string& key, rpc::i8* ok) = 0;
 private:
     void __put__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
         std::string* in_0 = new std::string;
@@ -145,6 +163,41 @@ private:
         req->m >> in_0;
         this->ping(in_0);
         sconn->begin_reply(req);
+        sconn->end_reply();
+        delete req;
+        sconn->release();
+    }
+    void __put_key__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
+        std::string in_0;
+        req->m >> in_0;
+        std::string in_1;
+        req->m >> in_1;
+        this->put_key(in_0, in_1);
+        sconn->begin_reply(req);
+        sconn->end_reply();
+        delete req;
+        sconn->release();
+    }
+    void __get_key__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
+        std::string in_0;
+        req->m >> in_0;
+        std::string out_0;
+        rpc::i8 out_1;
+        this->get_key(in_0, &out_0, &out_1);
+        sconn->begin_reply(req);
+        *sconn << out_0;
+        *sconn << out_1;
+        sconn->end_reply();
+        delete req;
+        sconn->release();
+    }
+    void __remove_key__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
+        std::string in_0;
+        req->m >> in_0;
+        rpc::i8 out_0;
+        this->remove_key(in_0, &out_0);
+        sconn->begin_reply(req);
+        *sconn << out_0;
         sconn->end_reply();
         delete req;
         sconn->release();
@@ -283,6 +336,65 @@ public:
             return ENOTCONN;
         }
         rpc::i32 __ret__ = __fu__->get_error_code();
+        __fu__->release();
+        return __ret__;
+    }
+    rpc::Future* async_put_key(const std::string& key, const std::string& value, const rpc::FutureAttr& __fu_attr__ = rpc::FutureAttr()) {
+        rpc::Future* __fu__ = __cl__->begin_request(ChordService::PUT_KEY, __fu_attr__);
+        if (__fu__ != nullptr) {
+            *__cl__ << key;
+            *__cl__ << value;
+        }
+        __cl__->end_request();
+        return __fu__;
+    }
+    rpc::i32 put_key(const std::string& key, const std::string& value) {
+        rpc::Future* __fu__ = this->async_put_key(key, value);
+        if (__fu__ == nullptr) {
+            return ENOTCONN;
+        }
+        rpc::i32 __ret__ = __fu__->get_error_code();
+        __fu__->release();
+        return __ret__;
+    }
+    rpc::Future* async_get_key(const std::string& key, const rpc::FutureAttr& __fu_attr__ = rpc::FutureAttr()) {
+        rpc::Future* __fu__ = __cl__->begin_request(ChordService::GET_KEY, __fu_attr__);
+        if (__fu__ != nullptr) {
+            *__cl__ << key;
+        }
+        __cl__->end_request();
+        return __fu__;
+    }
+    rpc::i32 get_key(const std::string& key, std::string* value, rpc::i8* ok) {
+        rpc::Future* __fu__ = this->async_get_key(key);
+        if (__fu__ == nullptr) {
+            return ENOTCONN;
+        }
+        rpc::i32 __ret__ = __fu__->get_error_code();
+        if (__ret__ == 0) {
+            __fu__->get_reply() >> *value;
+            __fu__->get_reply() >> *ok;
+        }
+        __fu__->release();
+        return __ret__;
+    }
+    rpc::Future* async_remove_key(const std::string& key, const rpc::FutureAttr& __fu_attr__ = rpc::FutureAttr()) {
+        rpc::Future* __fu__ = __cl__->begin_request(ChordService::REMOVE_KEY, __fu_attr__);
+        if (__fu__ != nullptr) {
+            *__cl__ << key;
+        }
+        __cl__->end_request();
+        return __fu__;
+    }
+    rpc::i32 remove_key(const std::string& key, rpc::i8* ok) {
+        rpc::Future* __fu__ = this->async_remove_key(key);
+        if (__fu__ == nullptr) {
+            return ENOTCONN;
+        }
+        rpc::i32 __ret__ = __fu__->get_error_code();
+        if (__ret__ == 0) {
+            __fu__->get_reply() >> *ok;
+        }
         __fu__->release();
         return __ret__;
     }

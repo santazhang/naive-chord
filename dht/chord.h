@@ -29,6 +29,9 @@ public:
     virtual void get_predecessor(dht::host_port* addr);
     virtual void notify(const dht::host_port& maybe_pred);
     virtual void ping(const dht::host_port& sender);
+    virtual void put_key(const std::string& key, const std::string& value);
+    virtual void get_key(const std::string& key, std::string* value, rpc::i8* ok);
+    virtual void remove_key(const std::string& key, rpc::i8* ok);
 
     static const int R = g_chord_ring_r;
     static Chord* create(const host_port& me);
