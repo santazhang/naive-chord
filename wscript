@@ -8,16 +8,16 @@ def configure(conf):
     conf.load("compiler_cxx")
     _enable_cxx11(conf)
     _enable_debug(conf)
-    conf.env.LIB_PTHREAD = 'pthread'
-    conf.env.USES = "PTHREAD"
+    conf.env.INCLUDES_RPC = os.path.join(os.getcwd(), "../simple-rpc")
+    conf.env.LIBPATH_RPC = os.path.join(os.getcwd(), "../simple-rpc/build")
+    conf.env.LIB_RPC = 'simplerpc'
+    conf.env.USES = "RPC"
     conf.env.INCLUDES_BASE = os.path.join(os.getcwd(), "../base-utils")
     conf.env.LIBPATH_BASE = os.path.join(os.getcwd(), "../base-utils/build")
     conf.env.LIB_BASE = 'base'
     conf.env.USES += " BASE"
-    conf.env.INCLUDES_RPC = os.path.join(os.getcwd(), "../simple-rpc")
-    conf.env.LIBPATH_RPC = os.path.join(os.getcwd(), "../simple-rpc/build")
-    conf.env.LIB_RPC = 'simplerpc'
-    conf.env.USES += " RPC"
+    conf.env.LIB_PTHREAD = 'pthread'
+    conf.env.USES += " PTHREAD"
 
 def build(bld):
     _depend("dht/services.h", "dht/services.rpc", "../simple-rpc/bin/rpcgen dht/services.rpc")
