@@ -1,3 +1,5 @@
+#pragma once
+
 #include "rpc/marshal.h"
 #include "utils.h"
 #include "bigid.h"

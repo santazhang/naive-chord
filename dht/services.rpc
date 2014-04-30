@@ -19,5 +19,5 @@ abstract service Chord {
     fast notify(dht::host_port maybe_pred);
 
     // heartbeat message
-    fast ping()
+    fast ping(dht::host_port sender)
 };

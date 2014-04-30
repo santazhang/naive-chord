@@ -11,13 +11,13 @@ namespace dht {
 class ChordService: public rpc::Service {
 public:
     enum {
-        PUT = 0x5cd83dcf,
-        GET = 0x1eed4b22,
-        REMOVE = 0x5286b4e3,
-        FIND_SUCCESSOR = 0x3e8424c5,
-        GET_PREDECESSOR = 0x4744d866,
-        NOTIFY = 0x178be6a6,
-        PING = 0x4ce29097,
+        PUT = 0x24079ccc,
+        GET = 0x5b25b1b1,
+        REMOVE = 0x4444a894,
+        FIND_SUCCESSOR = 0x48746f68,
+        GET_PREDECESSOR = 0x5c74ea10,
+        NOTIFY = 0x27bdee5e,
+        PING = 0x119088c6,
     };
     int __reg_to__(rpc::Server* svr) {
         int ret = 0;
@@ -61,7 +61,7 @@ public:
     virtual void find_successor(const dht::BigId& id, dht::host_port* addr, rpc::DeferredReply* defer) = 0;
     virtual void get_predecessor(dht::host_port* addr) = 0;
     virtual void notify(const dht::host_port& maybe_pred) = 0;
-    virtual void ping() = 0;
+    virtual void ping(const dht::host_port& sender) = 0;
 private:
     void __put__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
         std::string in_0;
@@ -131,7 +131,9 @@ private:
         sconn->release();
     }
     void __ping__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
-        this->ping();
+        dht::host_port in_0;
+        req->m >> in_0;
+        this->ping(in_0);
         sconn->begin_reply(req);
         sconn->end_reply();
         delete req;
@@ -257,13 +259,16 @@ public:
         __fu__->release();
         return __ret__;
     }
-    rpc::Future* async_ping(const rpc::FutureAttr& __fu_attr__ = rpc::FutureAttr()) {
+    rpc::Future* async_ping(const dht::host_port& sender, const rpc::FutureAttr& __fu_attr__ = rpc::FutureAttr()) {
         rpc::Future* __fu__ = __cl__->begin_request(ChordService::PING, __fu_attr__);
+        if (__fu__ != nullptr) {
+            *__cl__ << sender;
+        }
         __cl__->end_request();
         return __fu__;
     }
-    rpc::i32 ping() {
-        rpc::Future* __fu__ = this->async_ping();
+    rpc::i32 ping(const dht::host_port& sender) {
+        rpc::Future* __fu__ = this->async_ping(sender);
         if (__fu__ == nullptr) {
             return ENOTCONN;
         }
