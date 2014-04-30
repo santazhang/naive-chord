@@ -16,11 +16,14 @@ class Chord: public NoCopy, public ChordService {
     Storage store_;
     host_port me_;
     host_port pred_;
-    std::vector<host_port> succ_;
+    host_port succ_;
+    rpc::ClientPool* clnt_;
 
     Chord(const host_port& me);
 
 public:
+
+    ~Chord();
 
     virtual void put(const std::string& key, const std::string& value, rpc::DeferredReply* defer);
     virtual void get(const std::string& key, std::string* value, rpc::i8* ok, rpc::DeferredReply* defer);
@@ -33,7 +36,6 @@ public:
     virtual void get_key(const std::string& key, std::string* value, rpc::i8* ok);
     virtual void remove_key(const std::string& key, rpc::i8* ok);
 
-    static const int R = g_chord_ring_r;
     static Chord* create(const host_port& me);
     static Chord* join(const host_port& me, const host_port& join_at);
 };

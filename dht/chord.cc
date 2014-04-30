@@ -4,9 +4,12 @@
 
 namespace dht {
 
-Chord::Chord(const host_port& me): me_(me) {
-    succ_.reserve(Chord::R);
-    succ_.push_back(me_);
+Chord::Chord(const host_port& me): me_(me), succ_(me) {
+    clnt_ = new rpc::ClientPool;
+}
+
+Chord::~Chord() {
+    delete clnt_;
 }
 
 
@@ -64,7 +67,6 @@ void Chord::remove_key(const std::string& key, rpc::i8* ok) {
 
 Chord* Chord::create(const host_port& me) {
     Chord* chord = new Chord(me);
-    // TODO
     return chord;
 }
 
