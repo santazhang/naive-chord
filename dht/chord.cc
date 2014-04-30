@@ -1,22 +1,29 @@
 #include <errno.h>
 
+#include "base/all.h"
 #include "chord.h"
 
 using namespace rpc;
 
 namespace dht {
 
-Chord::Chord(const host_port& me): me_(me), succ_(me) {
+Chord::Chord(const host_port& me): me_(me), succ_(me), stop_flag_(false) {
     clnt_ = new rpc::ClientPool;
+
+    Pthread_create(&stabilize_th_, nullptr, Chord::start_stabilize_loop, this);
 }
 
-Chord::Chord(const host_port& me, const host_port& join_at): me_(me) {
+Chord::Chord(const host_port& me, const host_port& join_at): me_(me), stop_flag_(false) {
     clnt_ = new rpc::ClientPool;
     ChordProxy proxy(clnt_->get_client(join_at));
     proxy.find_successor(BigId(me), &succ_);
+
+    Pthread_create(&stabilize_th_, nullptr, Chord::start_stabilize_loop, this);
 }
 
 Chord::~Chord() {
+    stop_flag_ = true;
+    Pthread_join(stabilize_th_, nullptr);
     delete clnt_;
 }
 
@@ -86,6 +93,14 @@ void Chord::remove_key(const std::string& key, rpc::i8* ok) {
 }
 
 
+void Chord::stabilize_loop() {
+    while (!stop_flag_) {
+        sleep(1);
+        Log::debug("wake up for stabilize");
+    }
+}
+
+
 Chord* Chord::create(const host_port& me) {
     Chord* chord = new Chord(me);
     return chord;
@@ -95,6 +110,14 @@ Chord* Chord::create(const host_port& me) {
 Chord* Chord::join(const host_port& me, const host_port& join_at) {
     Chord* chord = new Chord(me, join_at);
     return chord;
+}
+
+void* Chord::start_stabilize_loop(void* arg) {
+    Chord* chord = (Chord *) arg;
+    chord->stabilize_loop();
+
+    pthread_exit(nullptr);
+    return nullptr;
 }
 
 } // namespace dht

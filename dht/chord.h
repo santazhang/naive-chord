@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include <pthread.h>
+
 #include "utils.h"
 #include "config.h"
 #include "marshal-chord.h"
@@ -19,8 +21,13 @@ class Chord: public NoCopy, public ChordService {
     host_port succ_;
     rpc::ClientPool* clnt_;
 
+    bool stop_flag_;
+    pthread_t stabilize_th_;
+
     Chord(const host_port& me);
     Chord(const host_port& me, const host_port& join_at);
+
+    void stabilize_loop();
 
 public:
 
@@ -39,6 +46,8 @@ public:
 
     static Chord* create(const host_port& me);
     static Chord* join(const host_port& me, const host_port& join_at);
+
+    static void* start_stabilize_loop(void *);
 };
 
 } // namespace dht
