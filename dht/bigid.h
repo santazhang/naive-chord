@@ -8,7 +8,7 @@ namespace dht {
 
 class BigId {
 
-    unsigned char sha1_[g_sha1_bytes];
+    unsigned char sha1_[Config::hash_bytes];
 
 public:
     BigId();
@@ -24,9 +24,6 @@ public:
     }
 
     int cmp(const BigId& o) const;
-
-    static const int M = g_chord_ring_m;
-
 };
 
 inline bool operator == (const BigId& bi1, const BigId& bi2) {

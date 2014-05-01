@@ -20,7 +20,7 @@ TEST(bigid, marshal) {
     Marshal m;
     BigId bigid("blah");
     m << bigid;
-    EXPECT_EQ(m.content_size(), g_sha1_bytes);
+    EXPECT_EQ(m.content_size(), Config::hash_bytes);
     BigId bi2;
     m >> bi2;
     EXPECT_TRUE(bi2 == bigid);

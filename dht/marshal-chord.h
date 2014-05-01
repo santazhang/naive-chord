@@ -7,12 +7,12 @@
 namespace dht {
 
 inline rpc::Marshal& operator <<(rpc::Marshal& m, const BigId& bi) {
-    m.write(bi.raw_bytes(), g_sha1_bytes);
+    m.write(bi.raw_bytes(), Config::hash_bytes);
     return m;
 }
 
 inline rpc::Marshal& operator >>(rpc::Marshal& m, BigId& bi) {
-    m.read(bi.raw_bytes(), g_sha1_bytes);
+    m.read(bi.raw_bytes(), Config::hash_bytes);
     return m;
 }
 

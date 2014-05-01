@@ -19,13 +19,13 @@ BigId::BigId(const char* p, int n) {
 }
 
 int BigId::cmp(const BigId& o) const {
-    int full_bytes = BigId::M / 8;
+    int full_bytes = Config::m / 8;
     int r = memcmp(sha1_, o.sha1_, full_bytes);
     if (r != 0) {
         return r;
     }
 
-    int residual = BigId::M % 8;
+    int residual = Config::m % 8;
     if (residual == 0) {
         return r;
     }
