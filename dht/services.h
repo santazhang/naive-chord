@@ -11,16 +11,18 @@ namespace dht {
 class ChordService: public rpc::Service {
 public:
     enum {
-        PUT = 0x2fc631be,
-        GET = 0x1dec98f6,
-        REMOVE = 0x4f149aad,
-        FIND_SUCCESSOR = 0x3cee39a5,
-        GET_PREDECESSOR = 0x46739930,
-        NOTIFY = 0x26e018e5,
-        PING = 0x15605249,
-        PUT_KEY = 0x443dfeec,
-        GET_KEY = 0x4c55e9c7,
-        REMOVE_KEY = 0x40234215,
+        PUT = 0x5bb50626,
+        GET = 0x50f133c8,
+        REMOVE = 0x2e37c67e,
+        DUMP = 0x1402f174,
+        FIND_SUCCESSOR = 0x486e737b,
+        GET_PREDECESSOR = 0x56574d7f,
+        NOTIFY = 0x2b9181ef,
+        PING = 0x3ac7b5df,
+        PUT_KEY = 0x1bdfde6a,
+        GET_KEY = 0x4df99292,
+        REMOVE_KEY = 0x432145e7,
+        DUMP_INFO = 0x3ce54ed3,
     };
     int __reg_to__(rpc::Server* svr) {
         int ret = 0;
@@ -31,6 +33,9 @@ public:
             goto err;
         }
         if ((ret = svr->reg(REMOVE, this, &ChordService::__remove__wrapper__)) != 0) {
+            goto err;
+        }
+        if ((ret = svr->reg(DUMP, this, &ChordService::__dump__wrapper__)) != 0) {
             goto err;
         }
         if ((ret = svr->reg(FIND_SUCCESSOR, this, &ChordService::__find_successor__wrapper__)) != 0) {
@@ -54,11 +59,15 @@ public:
         if ((ret = svr->reg(REMOVE_KEY, this, &ChordService::__remove_key__wrapper__)) != 0) {
             goto err;
         }
+        if ((ret = svr->reg(DUMP_INFO, this, &ChordService::__dump_info__wrapper__)) != 0) {
+            goto err;
+        }
         return 0;
     err:
         svr->unreg(PUT);
         svr->unreg(GET);
         svr->unreg(REMOVE);
+        svr->unreg(DUMP);
         svr->unreg(FIND_SUCCESSOR);
         svr->unreg(GET_PREDECESSOR);
         svr->unreg(NOTIFY);
@@ -66,6 +75,7 @@ public:
         svr->unreg(PUT_KEY);
         svr->unreg(GET_KEY);
         svr->unreg(REMOVE_KEY);
+        svr->unreg(DUMP_INFO);
         return ret;
     }
     // these RPC handler functions need to be implemented by user
@@ -73,6 +83,7 @@ public:
     virtual void put(const std::string& key, const std::string& value, rpc::DeferredReply* defer) = 0;
     virtual void get(const std::string& key, std::string* value, rpc::i8* ok, rpc::DeferredReply* defer) = 0;
     virtual void remove(const std::string& key, rpc::i8* ok, rpc::DeferredReply* defer) = 0;
+    virtual void dump(rpc::DeferredReply* defer) = 0;
     virtual void find_successor(const dht::BigId& id, dht::host_port* addr, rpc::DeferredReply* defer) = 0;
     virtual void get_predecessor(dht::host_port* addr) = 0;
     virtual void notify(const dht::host_port& maybe_pred) = 0;
@@ -80,6 +91,7 @@ public:
     virtual void put_key(const std::string& key, const std::string& value) = 0;
     virtual void get_key(const std::string& key, std::string* value, rpc::i8* ok) = 0;
     virtual void remove_key(const std::string& key, rpc::i8* ok) = 0;
+    virtual void dump_info(const std::string& stops_at, rpc::DeferredReply* defer) = 0;
 private:
     void __put__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
         std::string* in_0 = new std::string;
@@ -125,6 +137,14 @@ private:
         };
         rpc::DeferredReply* __defer__ = new rpc::DeferredReply(req, sconn, __marshal_reply__, __cleanup__);
         this->remove(*in_0, out_0, __defer__);
+    }
+    void __dump__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
+        auto __marshal_reply__ = [=] {
+        };
+        auto __cleanup__ = [=] {
+        };
+        rpc::DeferredReply* __defer__ = new rpc::DeferredReply(req, sconn, __marshal_reply__, __cleanup__);
+        this->dump(__defer__);
     }
     void __find_successor__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
         dht::BigId* in_0 = new dht::BigId;
@@ -202,6 +222,17 @@ private:
         delete req;
         sconn->release();
     }
+    void __dump_info__wrapper__(rpc::Request* req, rpc::ServerConnection* sconn) {
+        std::string* in_0 = new std::string;
+        req->m >> *in_0;
+        auto __marshal_reply__ = [=] {
+        };
+        auto __cleanup__ = [=] {
+            delete in_0;
+        };
+        rpc::DeferredReply* __defer__ = new rpc::DeferredReply(req, sconn, __marshal_reply__, __cleanup__);
+        this->dump_info(*in_0, __defer__);
+    }
 };
 
 class ChordProxy {
@@ -265,6 +296,20 @@ public:
         if (__ret__ == 0) {
             __fu__->get_reply() >> *ok;
         }
+        __fu__->release();
+        return __ret__;
+    }
+    rpc::Future* async_dump(const rpc::FutureAttr& __fu_attr__ = rpc::FutureAttr()) {
+        rpc::Future* __fu__ = __cl__->begin_request(ChordService::DUMP, __fu_attr__);
+        __cl__->end_request();
+        return __fu__;
+    }
+    rpc::i32 dump() {
+        rpc::Future* __fu__ = this->async_dump();
+        if (__fu__ == nullptr) {
+            return ENOTCONN;
+        }
+        rpc::i32 __ret__ = __fu__->get_error_code();
         __fu__->release();
         return __ret__;
     }
@@ -395,6 +440,23 @@ public:
         if (__ret__ == 0) {
             __fu__->get_reply() >> *ok;
         }
+        __fu__->release();
+        return __ret__;
+    }
+    rpc::Future* async_dump_info(const std::string& stops_at, const rpc::FutureAttr& __fu_attr__ = rpc::FutureAttr()) {
+        rpc::Future* __fu__ = __cl__->begin_request(ChordService::DUMP_INFO, __fu_attr__);
+        if (__fu__ != nullptr) {
+            *__cl__ << stops_at;
+        }
+        __cl__->end_request();
+        return __fu__;
+    }
+    rpc::i32 dump_info(const std::string& stops_at) {
+        rpc::Future* __fu__ = this->async_dump_info(stops_at);
+        if (__fu__ == nullptr) {
+            return ENOTCONN;
+        }
+        rpc::i32 __ret__ = __fu__->get_error_code();
         __fu__->release();
         return __ret__;
     }

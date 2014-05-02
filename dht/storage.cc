@@ -28,4 +28,10 @@ bool Storage::remove(const std::string& key) {
     }
 }
 
+void Storage::dump() {
+    for (auto& it : data_) {
+        Log::debug("storage: key=%s, value=%s", it.first.c_str(), it.second.c_str());
+    }
+}
+
 } // namespace dht

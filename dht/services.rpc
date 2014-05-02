@@ -5,6 +5,7 @@ abstract service Chord {
     defer put(string key, string value);
     defer get(string key | string value, i8 ok);
     defer remove(string key | i8 ok);
+    defer dump();
 
 
     // the following are chord internal operations
@@ -25,4 +26,6 @@ abstract service Chord {
     fast put_key(string key, string value);
     fast get_key(string key | string value, i8 ok);
     fast remove_key(string key | i8 ok);
+
+    defer dump_info(string stops_at);
 };

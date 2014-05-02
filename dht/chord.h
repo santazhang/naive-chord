@@ -31,6 +31,7 @@ class Chord: public NoCopy, public ChordService {
     void stabilize_loop();
     host_port closest_preceding_node(const dht::BigId& id);
     void do_stabilize();
+    void do_dump_my_info();
 
 public:
 
@@ -39,6 +40,7 @@ public:
     virtual void put(const std::string& key, const std::string& value, rpc::DeferredReply* defer);
     virtual void get(const std::string& key, std::string* value, rpc::i8* ok, rpc::DeferredReply* defer);
     virtual void remove(const std::string& key, rpc::i8* ok, rpc::DeferredReply* defer);
+    virtual void dump(rpc::DeferredReply* defer);
     virtual void find_successor(const dht::BigId& id, dht::host_port* addr, rpc::DeferredReply* defer);
     virtual void get_predecessor(dht::host_port* addr);
     virtual void notify(const dht::host_port& maybe_pred);
@@ -46,6 +48,7 @@ public:
     virtual void put_key(const std::string& key, const std::string& value);
     virtual void get_key(const std::string& key, std::string* value, rpc::i8* ok);
     virtual void remove_key(const std::string& key, rpc::i8* ok);
+    virtual void dump_info(const std::string& stops_at, rpc::DeferredReply* defer);
 
     static Chord* create(const host_port& me);
     static Chord* join(const host_port& me, const host_port& join_at);

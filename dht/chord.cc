@@ -98,6 +98,26 @@ void Chord::remove(const std::string& key, rpc::i8* ok, rpc::DeferredReply* defe
     Future::safe_release(fu);
 }
 
+
+void Chord::dump(rpc::DeferredReply* defer) {
+    ScopedLock sl(&l_);
+    defer->reply();
+    ChordProxy proxy(clnt_->get_client(succ_));
+    string stops_at = me_;
+    proxy.async_dump_info(stops_at);
+}
+
+void Chord::do_dump_my_info() {
+    Log::debug("**** BEGIN DUMP ****");
+    Log::debug("site %s: pre=%s, succ=%s", me_.c_str(), pred_.c_str(), succ_.c_str());
+    if (pred_ != "") {
+        Log::debug("range: [%s, %s)", BigId(pred_).str().c_str(), BigId(me_).str().c_str());
+    }
+    Log::debug("succ range: [%s, %s)", BigId(me_).str().c_str(), BigId(succ_).str().c_str());
+    store_.dump();
+    Log::debug("****  END  DUMP ****");
+}
+
 host_port Chord::closest_preceding_node(const dht::BigId& id) {
     // TODO scalable approach
     return succ_;
@@ -185,6 +205,16 @@ void Chord::remove_key(const std::string& key, rpc::i8* ok) {
     Log::debug("site %s remove %s -> err_code=%d", me_.c_str(), key.c_str(), *ok);
 }
 
+
+void Chord::dump_info(const std::string& stops_at, rpc::DeferredReply* defer) {
+    ScopedLock sl(&l_);
+    if (me_ != stops_at) {
+        ChordProxy proxy(clnt_->get_client(succ_));
+        proxy.async_dump_info(stops_at);
+    }
+    defer->reply();
+    do_dump_my_info();
+}
 
 void Chord::do_stabilize() {
     l_.lock();

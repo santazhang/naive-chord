@@ -44,6 +44,8 @@ int main(int argc, char* argv[]) {
             i8 ok;
             proxy.remove(key, &ok);
             Log::debug("remove(%s) -> err_code=%d", key.c_str(), ok);
+        } else if (cmd == "dump") {
+            proxy.dump();
         } else {
             cout << "unknown command: '" << cmd << "', use: put key value, get key, del key, exit" << endl;
         }
