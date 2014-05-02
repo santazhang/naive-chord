@@ -24,8 +24,11 @@ public:
     }
 
     int get_bit(int pos) const;
+    void set_bit(int pos);
+    void unset_bit(int pos);
     int cmp(const BigId& o) const;
     std::string str() const;
+    BigId add_power_of_two(int pow) const;
 };
 
 inline bool operator == (const BigId& bi1, const BigId& bi2) {

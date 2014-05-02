@@ -28,6 +28,18 @@ int BigId::get_bit(int pos) const {
     return (sha1_[slot] >> shift) & 0x1;
 }
 
+void BigId::set_bit(int pos) {
+    int slot = pos / 8;
+    int shift = pos % 8;
+    sha1_[slot] |= (0x1 << shift);
+}
+
+void BigId::unset_bit(int pos) {
+    int slot = pos / 8;
+    int shift = pos % 8;
+    sha1_[slot] &= ~(0x1 << shift);
+}
+
 int BigId::cmp(const BigId& o) const {
     for (int i = 0; i < Config::m; i++) {
         if (get_bit(i) < o.get_bit(i)) {
@@ -71,6 +83,19 @@ bool BigRange::include(const BigId& id) const {
         // have wrap around
         return low_ < id || id <= high_;
     }
+}
+
+BigId BigId::add_power_of_two(int pow) const {
+    BigId new_id = *this;
+    for (int idx = Config::m - pow - 1; idx >= 0; idx--) {
+        if (new_id.get_bit(idx) == 1) {
+            new_id.unset_bit(idx);
+        } else {
+            new_id.set_bit(idx);
+            break;
+        }
+    }
+    return new_id;
 }
 
 } // namespace dht

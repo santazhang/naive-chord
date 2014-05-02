@@ -13,6 +13,10 @@ Chord::Chord(const host_port& me): me_(me), succ_(me), stop_flag_(false) {
     Log::debug("site %s created new chord ring", me_.c_str());
     Log::debug("site %s has id: %s", me_.c_str(), BigId(me_).str().c_str());
 
+    for (int i = 0; i < Config::m; i++) {
+        finger_[i] = succ_;
+    }
+
     Pthread_create(&stabilize_th_, nullptr, Chord::start_stabilize_loop, this);
 }
 
@@ -22,6 +26,10 @@ Chord::Chord(const host_port& me, const host_port& join_at): me_(me), stop_flag_
     proxy.find_successor(BigId(me), &succ_);
     Log::debug("site %s joined chord ring at %s", me_.c_str(), join_at.c_str());
     Log::debug("site %s has id: %s", me_.c_str(), BigId(me_).str().c_str());
+
+    for (int i = 0; i < Config::m; i++) {
+        finger_[i] = succ_;
+    }
 
     Pthread_create(&stabilize_th_, nullptr, Chord::start_stabilize_loop, this);
 }
@@ -119,7 +127,13 @@ void Chord::do_dump_my_info() {
 }
 
 host_port Chord::closest_preceding_node(const dht::BigId& id) {
-    // TODO scalable approach
+    BigRange range(BigId(me_), id);
+    for (int i = Config::m - 1; i >= 0; i--) {
+        BigId id_finger = finger_[i];
+        if (range.include(id_finger) && id_finger != id) {
+            return finger_[i];
+        }
+    }
     return succ_;
 }
 
@@ -128,8 +142,8 @@ void Chord::find_successor(const dht::BigId& id, dht::host_port* addr, rpc::Defe
 
     if (BigRange(BigId(me_), BigId(succ_)).include(id)) {
         *addr = succ_;
-        Log::debug("site %s replied find_successor(%s) request ~ [me=%s, succ=%s) -> addr=%s", me_.c_str(), id.str().c_str(),
-                    BigId(me_).str().c_str(), BigId(succ_).str().c_str(), succ_.c_str());
+//        Log::debug("site %s replied find_successor(%s) request ~ [me=%s, succ=%s) -> addr=%s", me_.c_str(), id.str().c_str(),
+//                    BigId(me_).str().c_str(), BigId(succ_).str().c_str(), succ_.c_str());
         defer->reply();
     } else {
         host_port node = closest_preceding_node(id);
@@ -141,7 +155,7 @@ void Chord::find_successor(const dht::BigId& id, dht::host_port* addr, rpc::Defe
         };
         Future* fu = proxy.async_find_successor(id, fu_attr);
         Future::safe_release(fu);
-        Log::debug("site %s relay find_successor(%s) request to %s", me_.c_str(), id.str().c_str(), node.c_str());
+//        Log::debug("site %s relay find_successor(%s) request to %s", me_.c_str(), id.str().c_str(), node.c_str());
     }
 }
 
@@ -242,12 +256,28 @@ void Chord::do_stabilize() {
     proxy2.async_notify(me_);
 }
 
+void Chord::do_fix_finger() {
+    l_.lock();
+    ChordProxy proxy(clnt_->get_client(succ_));
+    l_.unlock();
+
+    for (int i = 0; i < Config::m; i++) {
+        BigId x = BigId(me_).add_power_of_two(i);
+        host_port old = finger_[i];
+        proxy.find_successor(x, &finger_[i]);
+        if (old != finger_[i]) {
+            Log::debug("site %s: finger[%d] updated from %s to %s",
+                        me_.c_str(), i, old.c_str(), finger_[i].c_str());
+        }
+    }
+}
+
 void Chord::stabilize_loop() {
     while (!stop_flag_) {
         sleep(1);
 //        Log::debug("wake up for stabilize");
         do_stabilize();
-        // TODO: fix fingers
+        do_fix_finger();
         // TODO: check predecessor
     }
 }
