@@ -122,6 +122,9 @@ void Chord::do_dump_my_info() {
         Log::debug("range: [%s, %s)", BigId(pred_).str().c_str(), BigId(me_).str().c_str());
     }
     Log::debug("succ range: [%s, %s)", BigId(me_).str().c_str(), BigId(succ_).str().c_str());
+    for (int i = 0; i < Config::m; i++) {
+        Log::debug("finger[%d]: %s", i, finger_[i].c_str());
+    }
     store_.dump();
     Log::debug("****  END  DUMP ****");
 }

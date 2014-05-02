@@ -30,4 +30,62 @@ Now you are ready to build naive-chord:
 
     ./waf configure
     ./waf
-    ./build/unittest
+
+
+How to use
+==========
+
+Start first chord node:
+
+    ./build/chord 127.0.0.1:2001
+
+Start other chord nodes, joining existing chord ring:
+
+    ./build/chord 127.0.0.1:2002 127.0.0.1:2001
+    ./build/chord 127.0.0.1:2003 127.0.0.1:2001
+    ./build/chord 127.0.0.1:2004 127.0.0.1:2001
+    ./build/chord 127.0.0.1:2005 127.0.0.1:2001
+
+Start client console, connect to any chord node:
+
+    ./build/console 127.0.0.1:2003
+
+In the client console, you can execute put, get, and del requests:
+
+    > put hello world
+    D 2014-05-02 14:03:35.821 | id(hello) = 01010=10
+    > get hello
+    D 2014-05-02 14:03:47.506 | get(hello) -> world, err_code=0
+    > remove hello
+    > del hello
+    D 2014-05-02 14:03:54.866 | remove(hello) -> err_code=0
+    > exit
+
+Also you can run a dump in client console:
+
+    > dump
+
+On server side, status dump will be displayed:
+
+    D 2014-05-02 14:13:30.632 | **** BEGIN DUMP ****
+    D 2014-05-02 14:13:30.632 | site 127.0.0.1:2003: pre=127.0.0.1:2002, succ=127.0.0.1:2001
+    D 2014-05-02 14:13:30.632 | range: [01001=9, 10101=21)
+    D 2014-05-02 14:13:30.632 | succ range: [10101=21, 11010=26)
+    D 2014-05-02 14:13:30.632 | finger[0]: 127.0.0.1:2001
+    D 2014-05-02 14:13:30.632 | finger[1]: 127.0.0.1:2001
+    D 2014-05-02 14:13:30.632 | finger[2]: 127.0.0.1:2001
+    D 2014-05-02 14:13:30.632 | finger[3]: 127.0.0.1:2002
+    D 2014-05-02 14:13:30.632 | finger[4]: 127.0.0.1:2002
+    D 2014-05-02 14:13:30.632 | storage: key=hello, value=world
+    D 2014-05-02 14:13:30.632 | ****  END  DUMP ****
+
+
+What's not in there
+===================
+
+This is a very simple course homework, only node join, key lookup, and
+stabilization are implemented. A lot of stuff are missing:
+
+    * Fault tolerance
+    * Key migration
+    * Replication
