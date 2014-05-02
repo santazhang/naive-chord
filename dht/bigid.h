@@ -23,7 +23,9 @@ public:
         return sha1_;
     }
 
+    int get_bit(int pos) const;
     int cmp(const BigId& o) const;
+    std::string str() const;
 };
 
 inline bool operator == (const BigId& bi1, const BigId& bi2) {

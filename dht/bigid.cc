@@ -1,8 +1,12 @@
+#include <string>
+
 #include <string.h>
 
 #include "bigid.h"
 #include "utils.h"
 #include "sha1.h"
+
+using namespace std;
 
 namespace dht {
 
@@ -18,28 +22,39 @@ BigId::BigId(const char* p, int n) {
     sha1::calc(p, n, sha1_);
 }
 
+int BigId::get_bit(int pos) const {
+    int slot = pos / 8;
+    int shift = pos % 8;
+    return (sha1_[slot] >> shift) & 0x1;
+}
+
 int BigId::cmp(const BigId& o) const {
-    int full_bytes = Config::m / 8;
-    int r = memcmp(sha1_, o.sha1_, full_bytes);
-    if (r != 0) {
-        return r;
+    for (int i = 0; i < Config::m; i++) {
+        if (get_bit(i) < o.get_bit(i)) {
+            return -1;
+        } else if (get_bit(i) > o.get_bit(i)) {
+            return 1;
+        }
     }
+    return 0;
+}
 
-    int residual = Config::m % 8;
-    if (residual == 0) {
-        return r;
+string BigId::str() const {
+    string s;
+    for (int i = 0; i < Config::m; i++) {
+        s += '0' + get_bit(i);
     }
-
-    int mask = (1 << residual) - 1;
-    int a = sha1_[full_bytes] & mask;
-    int b = o.sha1_[full_bytes] & mask;
-    if (a < b) {
-        return -1;
-    } else if (a > b) {
-        return 1;
-    } else {
-        return 0;
+    if (s.size() < 15) {
+        s += "=";
+        int v = 0;
+        int w = 1;
+        for (int i = Config::m - 1; i >= 0; i--) {
+            v += w * get_bit(i);
+            w *= 2;
+        }
+        s += to_string(v);
     }
+    return s;
 }
 
 bool BigRange::include(const BigId& id) const {

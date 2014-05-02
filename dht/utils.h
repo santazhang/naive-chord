@@ -9,6 +9,7 @@ using base::i64;
 using base::NoCopy;
 using base::RefCounted;
 using base::Log;
+using base::SpinLock;
 using base::insert_into_map;
 
 // host:port address

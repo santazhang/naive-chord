@@ -20,6 +20,7 @@ class Chord: public NoCopy, public ChordService {
     host_port pred_;
     host_port succ_;
     rpc::ClientPool* clnt_;
+    SpinLock l_;
 
     bool stop_flag_;
     pthread_t stabilize_th_;
@@ -29,6 +30,7 @@ class Chord: public NoCopy, public ChordService {
 
     void stabilize_loop();
     host_port closest_preceding_node(const dht::BigId& id);
+    void do_stabilize();
 
 public:
 
