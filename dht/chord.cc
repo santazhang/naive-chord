@@ -38,15 +38,16 @@ void Chord::put(const std::string& key, const std::string& value, rpc::DeferredR
     ChordProxy proxy(clnt_->get_client(me_));
     BigId id_key(key);
     FutureAttr fu_attr;
-    fu_attr.callback = [defer, this, &key, &value] (Future* fu) {
+    fu_attr.callback = [defer, this, &key, &value] (Future* cb_fu) {
         string addr;
-        fu->get_reply() >> addr;
-        ChordProxy proxy2(clnt_->get_client(addr));
+        cb_fu->get_reply() >> addr;
+        Log::debug("redirect put to %s", addr.c_str());
+        ChordProxy proxy2(this->clnt_->get_client(addr));
         FutureAttr fu_attr2;
-        fu_attr2.callback = [defer] (Future* fu) {
+        fu_attr2.callback = [defer] (Future* cb_fu2) {
             defer->reply();
         };
-        Future* fu2 = proxy2.async_put(key, value);
+        Future* fu2 = proxy2.async_put_key(key, value, fu_attr2);
         Future::safe_release(fu2);
     };
     Future* fu = proxy.async_find_successor(id_key, fu_attr);
@@ -58,16 +59,17 @@ void Chord::get(const std::string& key, std::string* value, rpc::i8* ok, rpc::De
     ChordProxy proxy(clnt_->get_client(me_));
     BigId id_key(key);
     FutureAttr fu_attr;
-    fu_attr.callback = [defer, this, &key, value, ok] (Future* fu) {
+    fu_attr.callback = [defer, this, &key, value, ok] (Future* cb_fu) {
         string addr;
-        fu->get_reply() >> addr;
-        ChordProxy proxy2(clnt_->get_client(addr));
+        cb_fu->get_reply() >> addr;
+        Log::debug("redirect get to %s", addr.c_str());
+        ChordProxy proxy2(this->clnt_->get_client(addr));
         FutureAttr fu_attr2;
-        fu_attr2.callback = [defer, value, ok] (Future* fu) {
-            fu->get_reply() >> *value >> *ok;
+        fu_attr2.callback = [defer, value, ok] (Future* cb_fu2) {
+            cb_fu2->get_reply() >> *value >> *ok;
             defer->reply();
         };
-        Future* fu2 = proxy2.async_get(key);
+        Future* fu2 = proxy2.async_get_key(key, fu_attr2);
         Future::safe_release(fu2);
     };
     Future* fu = proxy.async_find_successor(id_key, fu_attr);
@@ -79,16 +81,17 @@ void Chord::remove(const std::string& key, rpc::i8* ok, rpc::DeferredReply* defe
     ChordProxy proxy(clnt_->get_client(me_));
     BigId id_key(key);
     FutureAttr fu_attr;
-    fu_attr.callback = [defer, this, &key, ok] (Future* fu) {
+    fu_attr.callback = [defer, this, &key, ok] (Future* cb_fu) {
         string addr;
-        fu->get_reply() >> addr;
-        ChordProxy proxy2(clnt_->get_client(addr));
+        cb_fu->get_reply() >> addr;
+        Log::debug("redirect remove to %s", addr.c_str());
+        ChordProxy proxy2(this->clnt_->get_client(addr));
         FutureAttr fu_attr2;
-        fu_attr2.callback = [defer, ok] (Future* fu) {
-            fu->get_reply() >> *ok;
+        fu_attr2.callback = [defer, ok] (Future* cb_fu2) {
+            cb_fu2->get_reply() >> *ok;
             defer->reply();
         };
-        Future* fu2 = proxy2.async_remove(key);
+        Future* fu2 = proxy2.async_remove_key(key, fu_attr2);
         Future::safe_release(fu2);
     };
     Future* fu = proxy.async_find_successor(id_key, fu_attr);
@@ -105,9 +108,9 @@ void Chord::find_successor(const dht::BigId& id, dht::host_port* addr, rpc::Defe
 
     if (BigRange(BigId(me_), BigId(succ_)).include(id)) {
         *addr = succ_;
+        Log::debug("site %s replied find_successor(%s) request ~ [me=%s, succ=%s) -> addr=%s", me_.c_str(), id.str().c_str(),
+                    BigId(me_).str().c_str(), BigId(succ_).str().c_str(), succ_.c_str());
         defer->reply();
-        Log::debug("site %s replied find_successor(%s) request ~ [%s, %s)", me_.c_str(), id.str().c_str(),
-                    BigId(pred_).str().c_str(), BigId(me_).str().c_str());
     } else {
         host_port node = closest_preceding_node(id);
         ChordProxy proxy(clnt_->get_client(node));
@@ -157,6 +160,7 @@ void Chord::ping(const dht::host_port& sender) {
 }
 
 void Chord::put_key(const std::string& key, const std::string& value) {
+    Log::debug("site %s put %s=%s", me_.c_str(), key.c_str(), value.c_str());
     ScopedLock sl(&l_);
     store_.put(key, value);
 }
@@ -168,6 +172,7 @@ void Chord::get_key(const std::string& key, std::string* value, rpc::i8* ok) {
     } else {
         *ok = ENOENT;
     }
+    Log::debug("site %s get %s -> %s, err_code=%d", me_.c_str(), key.c_str(), value->c_str(), *ok);
 }
 
 void Chord::remove_key(const std::string& key, rpc::i8* ok) {
@@ -177,6 +182,7 @@ void Chord::remove_key(const std::string& key, rpc::i8* ok) {
     } else {
         *ok = ENOENT;
     }
+    Log::debug("site %s remove %s -> err_code=%d", me_.c_str(), key.c_str(), *ok);
 }
 
 
