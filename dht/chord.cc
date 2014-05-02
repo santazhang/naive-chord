@@ -43,13 +43,19 @@ void Chord::remove(const std::string& key, rpc::i8* ok, rpc::DeferredReply* defe
     defer->reply();
 }
 
+host_port Chord::closest_preceding_node(const dht::BigId& id) {
+    // TODO
+    return succ_;
+}
+
 void Chord::find_successor(const dht::BigId& id, dht::host_port* addr, rpc::DeferredReply* defer) {
     // TODO scalable approach
     if (BigRange(BigId(me_), BigId(succ_)).include(id)) {
         *addr = succ_;
         defer->reply();
     } else {
-        ChordProxy proxy(clnt_->get_client(succ_));
+        host_port node = closest_preceding_node(id);
+        ChordProxy proxy(clnt_->get_client(node));
         FutureAttr fu_attr;
         fu_attr.callback = [defer, addr] (Future* fu) {
             fu->get_reply() >> *addr;
@@ -65,7 +71,18 @@ void Chord::get_predecessor(dht::host_port* addr) {
 }
 
 void Chord::notify(const dht::host_port& maybe_pred) {
-    if (pred_ == "" || (BigRange(BigId(pred_), BigId(me_)).include(BigId(maybe_pred)) && maybe_pred != me_)) {
+    if (pred_ == "") {
+        pred_ = maybe_pred;
+        return;
+    }
+
+    BigId id_pred(pred_);
+    BigId id_me(me_);
+    BigId id_maybe_pred(maybe_pred);
+
+    BigRange range(id_pred, id_me);
+
+    if (range.include(id_maybe_pred) && id_maybe_pred != id_me) {
         pred_ = maybe_pred;
     }
 }
@@ -99,6 +116,9 @@ void Chord::stabilize_loop() {
     while (!stop_flag_) {
         sleep(1);
         Log::debug("wake up for stabilize");
+        // TODO: stabilize
+        // TODO: fix fingers
+        // TODO: check predecessor
     }
 }
 

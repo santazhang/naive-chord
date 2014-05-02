@@ -28,6 +28,7 @@ class Chord: public NoCopy, public ChordService {
     Chord(const host_port& me, const host_port& join_at);
 
     void stabilize_loop();
+    host_port closest_preceding_node(const dht::BigId& id);
 
 public:
 
